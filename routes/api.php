@@ -19,3 +19,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/dompet', '\App\Http\Controllers\API\DompetController@index');
+
+Route::put('/changeStatus', '\App\Http\Controllers\API\DompetController@changeStatus');
