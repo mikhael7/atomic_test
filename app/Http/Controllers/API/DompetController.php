@@ -33,7 +33,53 @@ class DompetController extends Controller
         $dompetData->save();
         return response()->json([
             'status' => 200,
-            'message' => 'Student Updated Successfully',
+            'message' => 'Updated',
+        ]);
+    }
+
+    public function adddompet(Request $request)
+    {
+        $dompetData = new Dompet();
+        $dompetStatus = new DompetStatus();
+
+        $dompetData->nama = $request->nama;
+        $dompetData->referensi = $request->referensi;
+        $dompetData->deskripsi = $request->deskripsi;
+        $dompetData->save();
+
+        $dompetStatus->nama = $request->nama;
+        $dompetStatus->dompet_id = $dompetData->id;
+        $dompetStatus->save();
+
+
+        return response()->json([
+            'status' => 200,
+            'dompetData' => $dompetData,
+            'dompetStatus' => $dompetStatus,
+        ]);
+    }
+
+    public function editdompet(Request $request)
+    {
+        $dompetData = Dompet::find($request->id);
+        $dompetDataStatus = DompetStatus::find($request->id);
+
+        $dompetData->nama = $request->nama;
+        $dompetData->referensi = $request->referensi;
+        $dompetData->deskripsi = $request->deskripsi;
+
+        $dompetDataStatus->nama = $request->nama;
+        $dompetDataStatus->status = $request->status;
+
+        $dompetData->save();
+        $dompetDataStatus->save();
+
+
+        return response()->json([
+            'status' => 200,
+            'message' => $dompetData,
+            'msg2' => $dompetDataStatus,
+            'msg' => $request->all(),
         ]);
     }
 }

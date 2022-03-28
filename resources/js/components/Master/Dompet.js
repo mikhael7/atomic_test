@@ -14,8 +14,11 @@ import InputLabel from "@material-ui/core/InputLabel";
 
 import SortIcon from "@material-ui/icons/ArrowDownward";
 
+import Modal from "react-bootstrap/Modal";
+
 import movies from "../movies";
 import { LocalConvenienceStoreOutlined } from "@material-ui/icons";
+import DompetForm from "./DompetForm";
 
 function Dompet() {
   const columns = [
@@ -48,10 +51,9 @@ function Dompet() {
       name: "Action",
       cell: (row) => (
         <Select value={"Status"}>
-          <MenuItem value={0}>Detail</MenuItem>
-          <MenuItem value={1}>Ubah</MenuItem>
+          <MenuItem onClick={() => handleDetail(row)}>Detail</MenuItem>
+          <MenuItem onClick={() => handleChangeForm(row)}>Ubah</MenuItem>
           <MenuItem
-            value={2}
             onClick={() =>
               handleChangeStatus(row.status === "Non Aktif" ? 1 : 0, row)
             }
@@ -74,7 +76,12 @@ function Dompet() {
   const [data, setData] = useState([]);
   const [status, setStatus] = useState([]);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalState, setModalState] = useState(0);
+  const [rowDataModal, setrowDataModal] = useState();
+
   const baseURL = "http://localhost:8000";
+  // let rowDataModal = {};
 
   // handle change event of search input
   const handleChange = (value) => {
@@ -83,8 +90,6 @@ function Dompet() {
   };
 
   const handleChangeStatus = (value, rowData) => {
-    console.log("value", value, "\nrowdata before", rowData);
-
     let data = {
       id: rowData.id,
       status: value,
@@ -99,11 +104,24 @@ function Dompet() {
     } catch (error) {
       console.log("error");
     }
+  };
 
-    if (value === 0) rowData.status = "Non Aktif";
-    else rowData.status = "Aktif";
+  const handleNew = () => {
+    setrowDataModal("");
+    setModalState(0);
+    setModalOpen(true);
+  };
 
-    console.log("value", value, "\nrowdata after", rowData);
+  const handleDetail = (rowData) => {
+    setrowDataModal(rowData);
+    setModalState(1);
+    setModalOpen(true);
+  };
+
+  const handleChangeForm = (rowData) => {
+    setrowDataModal(rowData);
+    setModalState(2);
+    setModalOpen(true);
   };
 
   // filter records by search text
@@ -120,11 +138,21 @@ function Dompet() {
     }
   };
 
+  const handleModal = () => {
+    setModalOpen(!modalOpen);
+  };
+
   const subHeaderComponent = (
     <div className="row w-100 align-items-center justify-content-end">
       <div className="col-5"></div>
       <div className="col-2 text-end">
-        <Button variant="contained" color="primary">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            handleNew();
+          }}
+        >
           Buat Baru
         </Button>
       </div>
@@ -181,6 +209,12 @@ function Dompet() {
           />
         </Paper>
       </div>
+      <Modal show={modalOpen} onHide={handleModal} size="md" centered>
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body>
+          <DompetForm modalState={modalState} rowDataModal={rowDataModal} />
+        </Modal.Body>
+      </Modal>
     </>
   );
 }
