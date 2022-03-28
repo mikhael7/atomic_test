@@ -31,6 +31,8 @@ import TransMasuk from "/resources/js/components/Transaksi/Masuk";
 import TransKeluar from "/resources/js/components/Transaksi/Keluar";
 import Laporan from "/resources/js/components/Laporan/Laporan";
 
+import "../../css/App.css";
+
 /* An example React component */
 function Main() {
   const [open, setOpen] = useState(false);
@@ -128,7 +130,7 @@ function Main() {
             </IconButton>
           </div>
 
-          <List>
+          <List style={{ marginTop: "30px" }}>
             <ListItem button onClick={handleCollapseMaster}>
               <ListItemIcon>
                 <HomeIcon />

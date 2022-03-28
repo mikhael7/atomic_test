@@ -13,10 +13,11 @@ class CreateDompetStatusTable extends Migration
      */
     public function up()
     {
-        Schema::create('dompet_status', function (Blueprint $table) {
+        Schema::create('dompet_statuses', function (Blueprint $table) {
             $table->id();
             $table->string('nama')->nullable();
             $table->string('status')->default('1');
+            $table->string('dompet_id')->nullable();
             $table->timestamps();
         });
     }

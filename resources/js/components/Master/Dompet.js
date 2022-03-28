@@ -7,38 +7,20 @@ import DataTable from "react-data-table-component";
 import Paper from "@material-ui/core/Paper";
 import Checkbox from "@material-ui/core/Checkbox";
 import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import InputLabel from "@material-ui/core/InputLabel";
+
 import SortIcon from "@material-ui/icons/ArrowDownward";
+
+import Modal from "react-bootstrap/Modal";
 
 import movies from "../movies";
 import { LocalConvenienceStoreOutlined } from "@material-ui/icons";
+import DompetForm from "./DompetForm";
 
 function Dompet() {
-  const dataList1 = [
-    {
-      id: 1,
-      title: "Beetlejuice",
-      year: "1988",
-      runtime: "92",
-      genres: ["Comedy", "Fantasy"],
-      director: "Tim Burton",
-      actors: "Alec Baldwin, Geena Davis, Annie McEnroe, Maurice Page",
-      plot: 'A couple of recently deceased ghosts contract the services of a "bio-exorcist" in order to remove the obnoxious new owners of their house.',
-      posterUrl:
-        "https://images-na.ssl-images-amazon.com/images/M/MV5BMTUwODE3MDE0MV5BMl5BanBnXkFtZTgwNTk1MjI4MzE@._V1_SX300.jpg",
-    },
-    {
-      id: 2,
-      title: "The Cotton Club",
-      year: "1984",
-      runtime: "127",
-      genres: ["Crime", "Drama", "Music"],
-      director: "Francis Ford Coppola",
-      actors: "Richard Gere, Gregory Hines, Diane Lane, Lonette McKee",
-      plot: "The Cotton Club was a famous night club in Harlem. The story follows the people that visited the club, those that ran it, and is peppered with the Jazz music that made it so famous.",
-      posterUrl:
-        "https://images-na.ssl-images-amazon.com/images/M/MV5BMTU5ODAyNzA4OV5BMl5BanBnXkFtZTcwNzYwNTIzNA@@._V1_SX300.jpg",
-    },
-  ];
   const columns = [
     {
       name: "#",
@@ -65,6 +47,25 @@ function Dompet() {
       selector: "status",
       sortable: true,
     },
+    {
+      name: "Action",
+      cell: (row) => (
+        <Select value={"Status"}>
+          <MenuItem onClick={() => handleDetail(row)}>Detail</MenuItem>
+          <MenuItem onClick={() => handleChangeForm(row)}>Ubah</MenuItem>
+          <MenuItem
+            onClick={() =>
+              handleChangeStatus(row.status === "Non Aktif" ? 1 : 0, row)
+            }
+          >
+            {row.status === "Non Aktif" ? "Aktif" : "Non Aktif"}
+          </MenuItem>
+        </Select>
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+    },
   ];
 
   const isIndeterminate = (indeterminate) => indeterminate;
@@ -73,13 +74,54 @@ function Dompet() {
 
   const [searchText, setSearchText] = useState("");
   const [data, setData] = useState([]);
+  const [status, setStatus] = useState([]);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalState, setModalState] = useState(0);
+  const [rowDataModal, setrowDataModal] = useState();
 
   const baseURL = "http://localhost:8000";
+  // let rowDataModal = {};
 
   // handle change event of search input
   const handleChange = (value) => {
     setSearchText(value);
     filterData(value);
+  };
+
+  const handleChangeStatus = (value, rowData) => {
+    let data = {
+      id: rowData.id,
+      status: value,
+    };
+    try {
+      axios.put("/api/changeStatus/", data).then((res) => {
+        if (res.data.status === 200) {
+          console.log({ status: res.status, message: res.message });
+          location.reload();
+        } else console.log("Error");
+      });
+    } catch (error) {
+      console.log("error");
+    }
+  };
+
+  const handleNew = () => {
+    setrowDataModal("");
+    setModalState(0);
+    setModalOpen(true);
+  };
+
+  const handleDetail = (rowData) => {
+    setrowDataModal(rowData);
+    setModalState(1);
+    setModalOpen(true);
+  };
+
+  const handleChangeForm = (rowData) => {
+    setrowDataModal(rowData);
+    setModalState(2);
+    setModalOpen(true);
   };
 
   // filter records by search text
@@ -96,39 +138,83 @@ function Dompet() {
     }
   };
 
+  const handleModal = () => {
+    setModalOpen(!modalOpen);
+  };
+
+  const subHeaderComponent = (
+    <div className="row w-100 align-items-center justify-content-end">
+      <div className="col-5"></div>
+      <div className="col-2 text-end">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            handleNew();
+          }}
+        >
+          Buat Baru
+        </Button>
+      </div>
+      <div className="col-2">
+        <InputLabel fullWidth shrink>
+          Status
+        </InputLabel>
+        <Select fullWidth value={0}>
+          <MenuItem value={0}>Non Aktif</MenuItem>
+          <MenuItem value={1}>Aktif</MenuItem>
+          <MenuItem value={2}>All</MenuItem>
+        </Select>
+      </div>
+      <div className="col-2">
+        <TextField
+          fullWidth
+          label="Search"
+          margin="normal"
+          variant="outlined"
+          size="small"
+          onChange={(e) => handleChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     axios.get(baseURL + "/api/dompet").then((response) => {
-      setData(response.data.dompet);
-      console.log(response.data.dompet);
+      if (response.status === 200) {
+        let res = response.data;
+        res.dompet.map((key) => {
+          if (key.status === "1") key.status = "Aktif";
+          else key.status = "Non Aktif";
+        });
+        setData(res.dompet);
+      }
     });
   }, []);
 
   return (
     <>
-      <div>Dompet</div>
-      <div>
-        Search:{" "}
-        <input
-          style={{ marginLeft: 5 }}
-          type="text"
-          placeholder="Type to search..."
-          value={searchText}
-          onChange={(e) => handleChange(e.target.value)}
-        />
-      </div>
       <div>
         <Paper>
           <DataTable
-            title="Movies"
+            title="Dompet"
             columns={columns}
             data={data}
-            defaultSortField="title"
+            defaultSortField="status"
             sortIcon={<SortIcon />}
             pagination
             paginationResetDefaultPage={resetPaginationToggle}
+            subHeader
+            subHeaderComponent={subHeaderComponent}
           />
         </Paper>
       </div>
+      <Modal show={modalOpen} onHide={handleModal} size="md" centered>
+        <Modal.Header closeButton></Modal.Header>
+        <Modal.Body>
+          <DompetForm modalState={modalState} rowDataModal={rowDataModal} />
+        </Modal.Body>
+      </Modal>
     </>
   );
 }
